@@ -1,0 +1,13 @@
+[gd_scene load_steps=5 format=3 uid="uid://681i1wvjco40"]
+
+[ext_resource type="Script" uid="uid://42kr7co81hpt" path="res://Test/Scripts/ItemContainer/ItemContainer.gd" id="1_f3js0"]
+[ext_resource type="Script" uid="uid://ckx0cxgjxyq1l" path="res://Scripts/Tag/Tag.gd" id="2_ej7fe"]
+[ext_resource type="Resource" uid="uid://df8f00xdh4vip" path="res://Test/Tags/meet.tres" id="3_qyfdr"]
+[ext_resource type="Resource" uid="uid://crukdkrx4c5sb" path="res://Test/Tags/fruit.tres" id="4_pxdfy"]
+
+[node name="TestContainer" type="Node"]
+script = ExtResource("1_f3js0")
+addable_tags = Array[ExtResource("2_ej7fe")]([ExtResource("3_qyfdr"), ExtResource("4_pxdfy")])
+size = 5
+description = "这是一个测试用的容器实例"
+container_name = "测试用容器"

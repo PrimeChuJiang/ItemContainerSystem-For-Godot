@@ -4,7 +4,7 @@ class_name TestBehaviourA
 
 @export var behaviour_cost : int = -1
 
-func use_item(item : Item, character_from : Node, character_to : Node, num : int = -1) -> Variant:
+func use_item(item : Item, character_from : Node, character_to : Node, _num : int = -1) -> Variant:
 	_do_use_item(item, character_from, character_to, behaviour_cost)
 	return
 

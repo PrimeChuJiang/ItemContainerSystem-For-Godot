@@ -16,3 +16,10 @@ func _ready():
 		for item_data in item_map_data.item_data_map :
 			_item_map[item_data.id] = item_data
 		print("ContainerSystem: _ready: 物品数据地图加载成功")
+
+# 通过ID获取物品模板数据
+func get_item_data_by_id(id : int) -> ItemData:
+	if _item_map.has(id):
+		return _item_map[id]
+	else :
+		return null

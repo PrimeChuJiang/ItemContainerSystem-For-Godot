@@ -1,59 +1,105 @@
-背包系统(Container)需求分析(Ver0.00.01)：
+# ItemContainer 插件
 
-1. 物品
-2. 背包
+面向 Godot 4 的运行时容器/背包系统插件，提供容器管理、物品堆叠与跨容器操作的基础能力。支持 O(1) 级别的空位与物品位置查询，并提供模拟计算接口用于 UI 预览。
 
-### 物品(Item)
+官方文档参考（Godot 4.4）：https://docs.godotengine.org/zh-cn/4.4/index.html
 
-我需要给一个可以配置的物品模版类
-物品模板类我需要给出下面的方法：
+## 功能概览
 
-1. 物品名称
-2. 物品标签
-3. 物品描述
-4. 物品图片
-5. 物品的执行函数(使用物品，装备物品)
+- 物品与容器分离的数据结构（`ItemData` / `Item` / `ItemContainer`）
+- 物品堆叠、可添加标签校验、位置管理
+- 容器容量变更与物品重分配
+- O(1) 空位与物品位置查询（基于索引映射）
+- 跨容器交换、移动、拆分/合并、批量操作（`Swapper`）
+- 支持只计算不执行的模拟接口（UI 预览友好）
 
-运行时：
-使用一个RefCounted来进行运行时的调用，这样不需要我们使用Resource来进行繁重的资源型类的不停的创建和删除
+## 目录结构
 
-### 容器(Container)
+- `addons/ContainerSystem/core/ItemContainer.gd`：容器核心逻辑
+- `addons/ContainerSystem/core/Item.gd`：运行时物品实例
+- `addons/ContainerSystem/core/Swapper.gd`：跨容器静态工具类
+- `addons/ContainerSystem/core/ItemData*.gd`：物品静态配置（按项目实际文件为准）
 
-容器包括背包，仓库，存储箱等实例。
+## 核心类分工
 
-我需要一个可以是autoLoad和非autoLoad的一个容器类。这个类对象内需要包含如下的内容：
+- `ItemData`：物品静态配置（名称、图标、最大堆叠、标签、行为等）
+- `Item`：运行时物品实例（堆叠数量、所在容器、位置）
+- `ItemContainer`：单容器内的存取、校验、堆叠规则、信号广播与索引维护
+- `Swapper`：跨容器与批量操作编排，提供 `simulate_*` 只读计算路径
 
-1. 容器名称
-2. 容器大小
-3. 容器可存放的物品标签
-4. 容器描述
-5. 容器内容量大小
+## 快速开始
 
-容器内的物品我用一个动态数组来呈现
+### 1. 创建容器并初始化
 
-容器所需包含的功能(对应用侧开启的API)：
+```gdscript
+var container := ItemContainer.new()
+container.initialize(20, "背包", "玩家背包", [], [])
+```
 
-1. 容器的初始化函数(包括存档初始化，加载容器内物品，容器大小初始化，容器内每个物品的位置等等)
-2. 增加物品(是否指定位置，指定位置是否有物品)
-3. 删除物品(是否指定位置，指定位置是否有物品)
-4. 查看是否有指定物品(是否指定位置)
-5. 查看数量是否足够(是否指定位置)
-6. 变更背包大小，通知数据修改
+### 2. 添加物品
 
-### 交换器(Swapper) 注：该类是否还需存在存疑
+```gdscript
+var item := Item.new(item_data, container, -1, 3)
+container.add_item(item) # 自动分配位置并堆叠
+```
 
-该类是否还需存在存疑，对于ItemContainer来说，这个类本身就是一个运行时的类，而不是一个数据配置类，这个类可以为ItemContainer内的众多方法的包装，但是调用这个函数最后还是会需要指明是哪个ItemContainer类，可能唯一有用的就是和这个名字一样，做一个不同库之间的交换物品的一个静态类，然后当做一个工具来使用。
+### 3. 删除物品
 
-我希望能够将数据和逻辑完全的进行解耦，我需要将计算方法变成一个工具类。也就是说，Swapper这个类是一个完全的静态类，这个类的作用是：提供一系列静态函数，这个函数的作用是交换两个容器间的物品。
+```gdscript
+container.remove_item_in_position(0, 1)
+container.remove_item_by_id(item_data.id, 2)
+```
 
-### 物品行为
+### 4. 跨容器移动
 
-我希望能够将物品所产生的作用，或者是物品主动发出的行为形成一个可配置的东西，例如我能够将行为抽象成为一个：增加血量，增加蓝量，而一个物品可以拥有多个物品行为，而物品的使用是统一的，也就是说，使用一个物品是生成多个效果
+```gdscript
+Swapper.move_by_id(bag, warehouse, item_data.id, 5)
+```
 
-### ItemDataMap物品数据表
+### 5. 预览移动（不执行）
 
-这个类主要是让用户在创建了各种类型的物品模板之后，能够将模板集中的放到一个表内，然后由一个我们自定义的路径来存放这个模板，当然ItemDataMap本身也是一个resource文件，这个Resource文件内保存着别的Resource文件从而方便获取。当前版本的物品模板维护是用一个Dictionary来进行维护。会有一个单例来维护物品模板，这个维护的动作就在游戏最初的加载的时候会执行逻辑，之所以是单例，还是因为单例能够在整个游戏周期内方便用户获取他所创建的所有物品模板，不需要通过太复杂的操作。
+```gdscript
+var preview := Swapper.simulate_move(bag, warehouse, item_data.id, 5)
+if preview["code"] == Swapper.SUCCESS:
+	print(preview["src_changes"], preview["dst_changes"])
+```
 
-### ItemContainerSystem单例
+## 重要信号
 
-该单例用于方便用户获取他所创建的所有物品模板
+`ItemContainer` 内部维护以下信号用于 UI 或数据同步：
+
+- `item_changed(is_add: bool, index: int, item: Item)`
+- `illegal_items_changed(illegal_items: Array[Item])`
+- `size_changed(new_size: int)`
+
+## 容器容量变更逻辑
+
+当容器缩小时，系统会尝试将被挤出的物品重新分配到容器内的可用位置或同 ID 堆叠中；无法分配的物品会通过 `illegal_items_changed` 广播。
+
+## Swapper 使用场景
+
+Swapper 适合做跨容器或批量编排逻辑，包括但不限于：
+
+- 指定位置交换（同容器或跨容器）
+- 按 ID 或按实例移动物品（自动堆叠与空位分配）
+- 拆分/合并堆叠
+- 批量操作与模拟计算（UI 预览）
+
+## 设计原则
+
+- **数据与逻辑分离**：`ItemData` 只描述静态数据，运行时行为由 `Item` 与 `ItemContainer` 管理
+- **性能优先**：空位与物品位置使用索引映射缓存，减少线性扫描
+- **可扩展**：Swapper 提供统一编排入口，可扩展交易、掉落、拾取等业务
+
+## 常见扩展方向
+
+- 权限/标签规则（容器限定标签、任务物品锁定）
+- 重量/体积系统
+- 自动整理与排序
+- 交易/合成/掉落逻辑
+
+## 版本与兼容性
+
+- 目标引擎：Godot 4.x（建议 4.4）
+- 本插件为运行时逻辑层，UI 需自行实现
+

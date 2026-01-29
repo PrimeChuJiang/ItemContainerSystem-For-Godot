@@ -18,7 +18,7 @@ var item_list : Array[Item] = []
 # 容器名称
 @export var container_name : String = ""
 
-# TODO: 物品的变更除了正常情况下的信号外，还要支持对于插件来说非法，但是游戏内合法的信号，也就是需要将非法的所有物品当成一个列表参数，统一的触发
+# 容器内非法物品变更信号，illegal_items表示不能添加的物品列表
 signal illegal_items_changed(illegal_items : Array[Item])
 # 容器内物品变更信号，is_add表示是添加还是移除物品，index表示物品所在位置，item表示变更后的物品信息
 signal item_changed(is_add : bool, index: int, item: Item)
@@ -76,14 +76,15 @@ func can_add_item(item : Item , index : int = -1, check_tag : bool = false) -> i
 	# 首先检查物品的标签，是否在容器可添加的标签列表中
 	if check_tag:
 		if item.data.tags.size() > 0:
+			var has_valid_tag = false
 			if addable_tags.size() > 0:
 				for tag in item.data.tags:
 					if tag in addable_tags:
+						has_valid_tag = true
 						break
-			else:
-				return CAN_ADD_ITEM_TAG_LIST_ERROR
-			push_error("ItemContainer: can_add_item: 物品", item, "标签不在容器可添加的标签列表中")
-			return CAN_ADD_ITEM_TAG_CONTAIN_ERROR
+			if not has_valid_tag:
+				push_error("ItemContainer: can_add_item: 物品", item, "标签不在容器可添加的标签列表中")
+				return CAN_ADD_ITEM_TAG_CONTAIN_ERROR
 		else:
 			push_error("ItemContainer: can_add_item: 物品", item, "没有标签")
 			return CAN_ADD_ITEM_TAG_LIST_ERROR
@@ -149,6 +150,9 @@ func add_item(item : Item, index : int = -1, check_tag : bool = false) -> int:
 	var can_add = can_add_item(item, index, check_tag)
 	if can_add != CAN_ADD_ITEM_SUCCESS:
 		push_error("ItemContainer: add_item: 物品", item, "不能添加到容器，错误码：", can_add)
+		var illegal_items : Array[Item] = []
+		illegal_items.append(item)
+		illegal_items_changed.emit(illegal_items)
 		return can_add
 	if index == -1 :
 		index = find_position_by_id(item.data.id)
@@ -164,9 +168,23 @@ func add_item(item : Item, index : int = -1, check_tag : bool = false) -> int:
 		item_changed.emit(true, index, item_list[index])
 	return can_add
 
+# 一次性添加多个物品到容器内
+func add_multi_items(_items : Array[Item]) -> Array[int] :
+	var results : Array[int] = []
+	var illegal_items : Array[Item] = []
+	for _item in _items:
+		var code = add_item(_item)
+		if code != CAN_ADD_ITEM_SUCCESS:
+			push_error("ItemContainer: add_items: 物品", _item, "不能添加到容器，错误码：", code)
+			illegal_items.append(_item)
+		results.append(code)
+	if illegal_items.size() > 0:
+		illegal_items_changed.emit(illegal_items)
+	return results
+
+# 通过物品模板添加物品实例到容器内
 func add_item_by_itemdata(item_data: ItemData, index : int = -1, check_tag : bool = false, stack_count : int = 1) -> int :
 	return add_item(Item.new(item_data, self, index, stack_count), index, check_tag)
-	
 
 # 删除指定位置的物品
 func remove_item_in_position(index : int = -1, num : int = 1) -> int:

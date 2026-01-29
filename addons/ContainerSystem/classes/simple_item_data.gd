@@ -25,6 +25,7 @@ func load_from_save_datas(item_container : ItemContainer) -> Array[Item] :
                 var item := Item.new(item_data, item_container, i, save_data.count)
                 items.append(item)
             else:
+                push_error("SimpleItemData: load_from_save_datas: 物品ID", save_data.id, "不存在，无法加载物品")
                 items.append(null)
         else:
             items.append(null)

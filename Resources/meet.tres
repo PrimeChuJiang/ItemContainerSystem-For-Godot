@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="Tag" load_steps=2 format=3 uid="uid://b34ve7ya5s0p"]
+
+[ext_resource type="Script" uid="uid://ckx0cxgjxyq1l" path="res://addons/ContainerSystem/core/Tag.gd" id="1_42672"]
+
+[resource]
+script = ExtResource("1_42672")
+name = ""
+metadata/_custom_type_script = "uid://ckx0cxgjxyq1l"

@@ -4,7 +4,8 @@ class_name ItemContainerTest
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	change_size(size)
+	initialize(size, "", "", addable_tags)
+	illegal_items_changed.connect(_on_illegal_items_changed)
 
 func _input(event):
 	if event is InputEventKey:
@@ -24,3 +25,9 @@ func _input(event):
 			print("Position 0 has item:", item_in_pos_0)
 		else:
 			print("Position 0 is empty")
+
+func _on_illegal_items_changed(illegal_items : Array[Item]):
+	var msg = "Illegal items tried to be added: \n" 
+	for item in illegal_items:
+		msg += "  " + str(item) + "\n"
+	print(msg)

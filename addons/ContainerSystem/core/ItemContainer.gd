@@ -3,6 +3,9 @@ extends Node
 
 class_name ItemContainer
 
+# 背包内操作成功返回码
+const SUCCESS = 200
+
 # 物品列表
 var item_list : Array[Item] = []
 var item_id_pos_map : Dictionary = {} # int -> Array[int]，存储每个物品ID对应的位置列表
@@ -33,7 +36,8 @@ func initialize(_size : int = 0, _container_name : String = "", _description : S
 	self.container_name = _container_name
 	self.description = _description
 	self.addable_tags = _addable_tags
-	self.item_list = _item_list
+	if _item_list.any(func(item): return item != null):
+		self.item_list = _item_list
 	# 重建映射
 	item_id_pos_map.clear()
 	item_empty_pos_map.clear()
@@ -98,6 +102,7 @@ func _set_item_list_size(new_size : int) -> bool:
 			if item_id_pos_map[item_id].is_empty():
 				item_id_pos_map.erase(item_id)
 	size = new_size
+	print("ItemContainer: _set_item_list_size: 当前容器大小为", item_list.size())
 	return true
 
 # 设置容器大小（处理物品重新分配和信号触发）

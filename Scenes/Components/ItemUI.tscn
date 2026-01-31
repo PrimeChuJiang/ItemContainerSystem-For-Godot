@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3 uid="uid://nraplcej5rli"]
+
+[ext_resource type="Texture2D" uid="uid://bpms0nyo1uj6r" path="res://icon.svg" id="1_ewjji"]
+[ext_resource type="Script" uid="uid://dp7cj5jxbpwg1" path="res://Scripts/item_ui.gd" id="1_u1vlt"]
+
+[node name="ItemUi" type="MarginContainer"]
+custom_minimum_size = Vector2(64, 64)
+offset_right = 64.0
+offset_bottom = 64.0
+mouse_filter = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+script = ExtResource("1_u1vlt")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("1_ewjji")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "x1"

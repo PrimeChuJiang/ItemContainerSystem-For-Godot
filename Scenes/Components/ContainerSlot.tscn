@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://cspwqf3syuueq"]
+
+[ext_resource type="Script" uid="uid://jrx0uvampri5" path="res://Scripts/container_slot.gd" id="1_obufr"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot"]
+bg_color = Color(0.15, 0.15, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ContainerSlot" type="PanelContainer"]
+custom_minimum_size = Vector2(64, 64)
+offset_right = 64.0
+offset_bottom = 64.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot")
+script = ExtResource("1_obufr")

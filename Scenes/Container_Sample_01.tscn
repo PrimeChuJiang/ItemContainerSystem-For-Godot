@@ -1,0 +1,132 @@
+[gd_scene load_steps=4 format=3 uid="uid://d3yeh4meqr1yv"]
+
+[ext_resource type="Script" uid="uid://dc3uq76ylvoj8" path="res://Scripts/container_sample.gd" id="1_sample"]
+[ext_resource type="Resource" uid="uid://crukdkrx4c5sb" path="res://addons/ContainerSystem/templates/Tags/fruit.tres" id="2_fruit"]
+[ext_resource type="Script" uid="uid://ckx0cxgjxyq1l" path="res://addons/ContainerSystem/core/Tag.gd" id="2_y571e"]
+
+[node name="ContainerSample01" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_sample")
+backpack_tags = Array[ExtResource("2_y571e")]([ExtResource("2_fruit")])
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+theme_override_constants/separation = 10
+
+[node name="ButtonAddItemA" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "添加物品A"
+
+[node name="ButtonAddItemB" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "添加物品B"
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+offset_right = 200.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LabelTitle" type="Label" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "玩家状态"
+
+[node name="Label_HP" type="Label" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "生命：100"
+
+[node name="Label_Mana" type="Label" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "魔法值：50"
+
+[node name="Bagpack" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 20.0
+offset_top = -160.0
+offset_right = 320.0
+offset_bottom = 100.0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Bagpack"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Bagpack/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "背包 (有Tag控制)"
+
+[node name="Bagpack" type="GridContainer" parent="Bagpack/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 4
+
+[node name="Storehouse2" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -750.0
+offset_top = -220.0
+offset_right = -400.0
+offset_bottom = 220.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Storehouse2"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Storehouse2/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "仓库 (无Tag控制)"
+
+[node name="Storehouse" type="GridContainer" parent="Storehouse2/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 4
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+grow_horizontal = 0
+grow_vertical = 2
+bbcode_enabled = true
+text = "背包仓库交互示例说明"

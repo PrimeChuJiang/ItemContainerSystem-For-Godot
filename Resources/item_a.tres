@@ -1,16 +1,18 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3 uid="uid://d302gsenuyhgk"]
+[gd_resource type="Resource" script_class="ItemData" load_steps=6 format=3 uid="uid://d302gsenuyhgk"]
 
 [ext_resource type="Script" uid="uid://cc4dbxs4dkmp5" path="res://addons/ContainerSystem/core/ItemBehaviourData.gd" id="1_bpmxl"]
 [ext_resource type="Resource" uid="uid://d2crak5wow8e1" path="res://Resources/item_a_behaviour.tres" id="2_dteak"]
 [ext_resource type="Script" uid="uid://o4akd0wb6em7" path="res://addons/ContainerSystem/core/ItemData.gd" id="2_whpl0"]
-[ext_resource type="Script" uid="uid://ckx0cxgjxyq1l" path="res://addons/ContainerSystem/core/Tag.gd" id="3_dteak"]
+[ext_resource type="Resource" uid="uid://crukdkrx4c5sb" path="res://addons/ContainerSystem/templates/Tags/fruit.tres" id="3_fruit"]
+[ext_resource type="Texture2D" uid="uid://bpms0nyo1uj6r" path="res://icon.svg" id="4_icon"]
 
 [resource]
 script = ExtResource("2_whpl0")
 id = 0
-name = "a"
-tags = Array[ExtResource("3_dteak")]([])
-description = "测试物品A"
-max_stack = 2
+name = "苹果"
+tags = [ExtResource("3_fruit")]
+description = "一个红苹果，恢复少量生命值"
+image = ExtResource("4_icon")
+max_stack = 5
 behaviours = Array[ExtResource("1_bpmxl")]([ExtResource("2_dteak")])
 metadata/_custom_type_script = "uid://o4akd0wb6em7"

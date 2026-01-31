@@ -58,6 +58,6 @@ func _to_string():
 # 快捷获取静态数据的封装（语法糖，调用更简洁）
 func get_id() -> int: return data.id
 func get_name() -> String: return data.name
-func get_icon() -> Texture2D: return data.icon
+func get_icon() -> Texture2D: return data.image
 func get_max_stack() -> int: return data.max_stack
 func get_current_count() -> int: return stack_count

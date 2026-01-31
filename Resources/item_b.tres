@@ -1,16 +1,19 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3 uid="uid://d3gxc3aafuttk"]
+[gd_resource type="Resource" script_class="ItemData" load_steps=7 format=3 uid="uid://d3gxc3aafuttk"]
 
 [ext_resource type="Script" uid="uid://cc4dbxs4dkmp5" path="res://addons/ContainerSystem/core/ItemBehaviourData.gd" id="1_6vrxo"]
 [ext_resource type="Resource" uid="uid://dp4uljba5t4i" path="res://Resources/item_b_behaviour.tres" id="2_d28dm"]
 [ext_resource type="Script" uid="uid://o4akd0wb6em7" path="res://addons/ContainerSystem/core/ItemData.gd" id="2_upaet"]
-[ext_resource type="Script" uid="uid://ckx0cxgjxyq1l" path="res://addons/ContainerSystem/core/Tag.gd" id="3_d28dm"]
+[ext_resource type="Resource" uid="uid://df8f00xdh4vip" path="res://addons/ContainerSystem/templates/Tags/meet.tres" id="3_meet"]
+[ext_resource type="Texture2D" uid="uid://bpms0nyo1uj6r" path="res://icon.svg" id="4_icon"]
+[ext_resource type="Script" uid="uid://ckx0cxgjxyq1l" path="res://addons/ContainerSystem/core/Tag.gd" id="5_8ergd"]
 
 [resource]
 script = ExtResource("2_upaet")
 id = 1
-name = "b"
-tags = Array[ExtResource("3_d28dm")]([])
-description = "测试物品B"
-max_stack = -1
+name = "肉块"
+tags = Array[ExtResource("5_8ergd")]([ExtResource("3_meet")])
+description = "一块新鲜的肉，恢复大量生命值"
+image = ExtResource("4_icon")
+max_stack = 10
 behaviours = Array[ExtResource("1_6vrxo")]([ExtResource("2_d28dm")])
 metadata/_custom_type_script = "uid://o4akd0wb6em7"

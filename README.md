@@ -2,7 +2,7 @@
 
 面向 Godot 4 的运行时容器/背包系统插件，提供容器管理、物品堆叠与跨容器操作的基础能力。支持 O(1) 级别的空位与物品位置查询，并提供模拟计算接口用于 UI 预览。
 
-官方文档参考（Godot 4.4）：https://docs.godotengine.org/zh-cn/4.4/index.html
+想要理解完整的系统是如何实现以及如何使用？参考这个文档：https://deepwiki.com/PrimeChuJiang/ItemContainerSystem
 
 ## 功能概览
 

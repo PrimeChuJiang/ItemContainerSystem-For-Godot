@@ -65,6 +65,7 @@ func _setup_ui() -> void:
 	tag_tree.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tag_tree.item_selected.connect(_on_item_selected)
 	tag_tree.item_edited.connect(_on_item_edited)
+	tag_tree.item_activated.connect(_on_item_activated)  # 双击时触发
 	tag_tree.set_column_expand(0, true)
 	main_vbox.add_child(tag_tree)
 
@@ -110,7 +111,7 @@ func _add_tag_to_tree(parent_item: TreeItem, tag: Tag) -> TreeItem:
 		return null
 	var item = tag_tree.create_item(parent_item)
 	item.set_text(0, tag.name)
-	item.set_editable(0, true)
+	# 不设置 editable，双击时才启用编辑
 	item.set_meta("tag", tag)
 
 	# 显示完整路径作为提示
@@ -134,11 +135,21 @@ func _on_item_selected() -> void:
 		add_child_btn.disabled = true
 		delete_btn.disabled = true
 
+func _on_item_activated() -> void:
+	# 双击时进入编辑模式
+	var item = tag_tree.get_selected()
+	if item and item.has_meta("tag"):
+		item.set_editable(0, true)
+		tag_tree.edit_selected()
+		# 编辑完成后会触发 _on_item_edited
+
 func _on_item_edited() -> void:
 	var item = tag_tree.get_edited()
 	if item and item.has_meta("tag"):
 		var tag: Tag = item.get_meta("tag")
 		var new_name = item.get_text(0)
+		# 编辑完成后禁用编辑状态
+		item.set_editable(0, false)
 		if new_name.is_empty():
 			# 不允许空名称，恢复原名
 			item.set_text(0, tag.name)

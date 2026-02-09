@@ -2,3 +2,7 @@
 .godot/
 /android/
 /.cursor
+/.claude
+/.claude
+.claude/settings.local.json
+/.claude

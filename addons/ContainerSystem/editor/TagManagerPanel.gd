@@ -80,6 +80,8 @@ func _load_hierarchy() -> void:
 		hierarchy = load(hierarchy_path) as TagHierarchy
 		if hierarchy:
 			hierarchy.initialize_paths()
+			# 确保所有已有标签都有独立的 .tres 文件
+			_ensure_tag_files()
 	if not hierarchy:
 		hierarchy = TagHierarchy.new()
 		_save_hierarchy()
@@ -95,6 +97,76 @@ func _save_hierarchy() -> void:
 	var err = ResourceSaver.save(hierarchy, hierarchy_path)
 	if err != OK:
 		push_error("TagManagerPanel: 保存 TagHierarchy 失败，错误码: " + str(err))
+
+# ---- Tag 文件管理 ----
+
+# 获取 Tag 独立文件的存储目录
+func _get_tags_dir() -> String:
+	return hierarchy_path.get_base_dir() + "/Tags"
+
+# 根据 tag_path 生成文件路径，如 "Food.Fruit" -> "Tags/Food.Fruit.tres"
+func _get_tag_file_path(tag: Tag) -> String:
+	if tag.tag_path.is_empty():
+		tag._update_path()
+	return _get_tags_dir() + "/" + tag.tag_path + ".tres"
+
+# 递归收集某个标签及其所有子标签的文件路径（用于删除/重命名前）
+func _collect_tag_file_paths(tag: Tag) -> Array[String]:
+	var paths: Array[String] = []
+	if tag == null:
+		return paths
+	paths.append(_get_tag_file_path(tag))
+	for child in tag.child_tags:
+		paths.append_array(_collect_tag_file_paths(child))
+	return paths
+
+# 将层级中所有标签保存为独立 .tres 文件
+func _save_all_tag_files() -> void:
+	var tags_dir = _get_tags_dir()
+	if not DirAccess.dir_exists_absolute(tags_dir):
+		DirAccess.make_dir_recursive_absolute(tags_dir)
+	if not hierarchy:
+		return
+	var all_tags = hierarchy.get_all_tags()
+	# 第一遍：先设置所有 resource_path，确保交叉引用时使用 ExtResource
+	for tag in all_tags:
+		var file_path = _get_tag_file_path(tag)
+		tag.take_over_path(file_path)
+	# 第二遍：保存所有文件
+	for tag in all_tags:
+		var err = ResourceSaver.save(tag, tag.resource_path)
+		if err != OK:
+			push_error("TagManagerPanel: 保存 Tag 文件失败: " + tag.resource_path + ", 错误码: " + str(err))
+
+# 删除指定路径列表中的 .tres 文件
+func _delete_tag_files(paths: Array[String]) -> void:
+	for path in paths:
+		if FileAccess.file_exists(path):
+			var err = DirAccess.remove_absolute(path)
+			if err != OK:
+				push_error("TagManagerPanel: 删除 Tag 文件失败: " + path + ", 错误码: " + str(err))
+
+# 通知编辑器文件系统重新扫描，使新文件出现在 Resource 选择器中
+func _scan_filesystem() -> void:
+	if Engine.is_editor_hint():
+		EditorInterface.get_resource_filesystem().scan()
+
+# 确保层级中所有标签都有对应的独立文件（用于加载时迁移旧数据）
+func _ensure_tag_files() -> void:
+	if not hierarchy or hierarchy.root_tags.size() == 0:
+		return
+	var needs_save = false
+	for tag in hierarchy.get_all_tags():
+		var file_path = _get_tag_file_path(tag)
+		if tag.resource_path != file_path or not FileAccess.file_exists(file_path):
+			needs_save = true
+			break
+	if needs_save:
+		_save_all_tag_files()
+		_save_hierarchy()
+		_scan_filesystem()
+
+# ---- Tree 显示 ----
 
 func _populate_tree() -> void:
 	tag_tree.clear()
@@ -123,6 +195,8 @@ func _add_tag_to_tree(parent_item: TreeItem, tag: Tag) -> TreeItem:
 		_add_tag_to_tree(item, child_tag)
 
 	return item
+
+# ---- 交互回调 ----
 
 func _on_item_selected() -> void:
 	selected_item = tag_tree.get_selected()
@@ -155,17 +229,25 @@ func _on_item_edited() -> void:
 			item.set_text(0, tag.name)
 			return
 		if new_name != tag.name:
+			# 收集重命名前的旧文件路径（包含所有子标签）
+			var old_paths = _collect_tag_file_paths(tag)
 			tag.name = new_name
 			tag._update_path()
 			item.set_tooltip_text(0, tag.tag_path)
+			# 删除旧文件，保存新文件
+			_delete_tag_files(old_paths)
+			_save_all_tag_files()
 			_save_hierarchy()
+			_scan_filesystem()
 
 func _on_add_root_pressed() -> void:
 	var new_tag = Tag.new()
 	new_tag.name = "NewTag"
 	new_tag.tag_path = "NewTag"
 	hierarchy.add_root_tag(new_tag)
+	_save_all_tag_files()
 	_save_hierarchy()
+	_scan_filesystem()
 	_populate_tree()
 
 func _on_add_child_pressed() -> void:
@@ -176,18 +258,26 @@ func _on_add_child_pressed() -> void:
 	new_tag.parent_tag = selected_tag
 	new_tag._update_path()
 	selected_tag.child_tags.append(new_tag)
+	_save_all_tag_files()
 	_save_hierarchy()
+	_scan_filesystem()
 	_populate_tree()
 
 func _on_delete_pressed() -> void:
 	if not selected_tag:
 		return
+	# 删除前收集该标签及其所有子标签的文件路径
+	var old_paths = _collect_tag_file_paths(selected_tag)
 	hierarchy.remove_tag(selected_tag)
 	selected_tag = null
 	selected_item = null
 	add_child_btn.disabled = true
 	delete_btn.disabled = true
+	# 删除文件，重新保存剩余标签（更新父标签的 child_tags 引用），保存层级
+	_delete_tag_files(old_paths)
+	_save_all_tag_files()
 	_save_hierarchy()
+	_scan_filesystem()
 	_populate_tree()
 
 # 刷新面板 (外部调用)

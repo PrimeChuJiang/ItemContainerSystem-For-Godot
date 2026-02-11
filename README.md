@@ -2,7 +2,7 @@
 
 一个专为 Godot 4 设计的运行时容器管理插件，适用于 RPG 背包、仓库、交易、掉落等一切需要物品存取的场景。核心特性包括 O(1) 的空位与物品位置查询、跨容器移动/交换/拆分/合并、层级化标签访问控制，以及不执行即可预览结果的模拟接口。
 
-> 完整文档：https://deepwiki.com/PrimeChuJiang/ItemContainerSystem
+> 完整文档：[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/PrimeChuJiang/ItemContainerSystem)
 
 ---
 

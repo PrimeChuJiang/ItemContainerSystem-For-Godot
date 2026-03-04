@@ -21,12 +21,14 @@ Open in Godot 4.4+ and run `Scenes/Container_Sample_01.tscn` for the demo.
 
 | Class | Role |
 |-------|------|
-| `ItemData` | Static item configuration (Resource) - name, icon, max_stack, tags, behaviors |
+| `ItemData` | Static item configuration (Resource) - StringName id, name, icon, max_stack, tags, behaviors |
 | `Item` | Runtime item instance (RefCounted) - stack count, container reference, position |
 | `ItemContainer` | Container logic (Node) - manages storage, emits signals, maintains index maps |
 | `Swapper` | Static utility for cross-container operations - move, swap, merge, split, simulate |
-| `Tag` | Access control classification (Resource) |
-| `ContainerSystem` | Autoload singleton - maps item IDs/names to ItemData templates |
+| `Tag` | Access control classification (Resource) - parent_tag is runtime-only (not serialized) |
+| `TagHierarchy` | Stores root tags, reconstructs parent refs on load via initialize_paths() |
+| `TagManager` | Autoload singleton - O(1) tag path lookups and hierarchy traversal |
+| `ContainerSystem` | Autoload singleton - maps StringName IDs/names to ItemData templates |
 
 ### Data Flow Pattern
 
@@ -39,7 +41,7 @@ UI Layer → Swapper API → ItemContainer → Signals → UI Updates
 ### Performance: Index Mapping
 
 ItemContainer uses two maps for O(1) lookups:
-- `item_id_pos_map`: Dictionary mapping item_id → Array[positions]
+- `item_id_pos_map`: Dictionary mapping StringName(item_id) → Array[positions]
 - `item_empty_pos_map`: Array[int] of free slot indices
 
 ### Signals (ItemContainer)
@@ -52,7 +54,7 @@ ItemContainer uses two maps for O(1) lookups:
 
 ### Adding Items
 ```gdscript
-var item_data = ItemContainerSystem.get_item_data_by_id(0)
+var item_data = ItemContainerSystem.get_item_data_by_id(&"apple")
 container.add_item_by_itemdata(item_data, -1, true, 1)
 ```
 
@@ -66,7 +68,7 @@ Swapper.split_stack(container, idx, split_count, dest_idx)
 
 ### Simulation (preview without executing)
 ```gdscript
-var preview = Swapper.simulate_move(bag, warehouse, item_id, 5)
+var preview = Swapper.simulate_move(bag, warehouse, &"apple", 5)
 if preview["code"] == Swapper.SUCCESS:
     print(preview["src_changes"], preview["dst_changes"])
 ```
@@ -83,6 +85,7 @@ Autoload singleton path: `res://addons/ContainerSystem/core/ContainerSystem.gd`
 
 Project settings:
 - `container_system/item_data_map` - Path to ItemDataMap resource
+- `container_system/tag_hierarchy` - Path to TagHierarchy resource (configured via Tag Manager panel on first use)
 
 ## Example Implementation
 

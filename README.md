@@ -50,13 +50,13 @@ addons/ContainerSystem/
 
 | 类 | 继承 | 职责 |
 |---|---|---|
-| `ItemData` | Resource | 物品静态模板 — 名称、图标、最大堆叠、标签、行为列表 |
+| `ItemData` | Resource | 物品静态模板 — StringName ID、名称、图标、最大堆叠、标签、行为列表 |
 | `Item` | RefCounted | 运行时物品实例 — 当前堆叠数、所在容器引用、位置索引 |
 | `ItemContainer` | Node | 单容器管理 — 存取、标签校验、堆叠规则、O(1) 索引维护、信号广播 |
 | `Swapper` | RefCounted | 跨容器编排 — 移动/交换/拆分/合并/模拟，所有操作的统一入口 |
 | `Tag` | Resource | 层级标签 — 支持父子关系、路径匹配（如 `Food.Fruit`） |
 | `TagManager` | Node | 全局标签注册表 — O(1) 路径查询、层级遍历 |
-| `ContainerSystem` | Node | 全局物品注册表 — 按 ID/名称查询 ItemData 模板 |
+| `ContainerSystem` | Node | 全局物品注册表 — 按 StringName ID / 名称查询 ItemData 模板 |
 
 ### 数据流
 
@@ -83,7 +83,7 @@ UI 层（根据信号刷新显示）
 
 | 结构 | 类型 | 用途 |
 |---|---|---|
-| `item_id_pos_map` | `Dictionary { item_id → Array[int] }` | 根据物品 ID 即时定位所有槽位 |
+| `item_id_pos_map` | `Dictionary { StringName → Array[int] }` | 根据物品 ID 即时定位所有槽位 |
 | `item_empty_pos_map` | `Array[int]`（有序） | 即时获取第一个空位 |
 
 ---
@@ -104,6 +104,8 @@ UI 层（根据信号刷新显示）
 - `container_system/item_data_map` → 指向你的 `ItemDataMap` 资源
 - `container_system/tag_hierarchy` → 指向你的 `TagHierarchy` 资源
 
+> **Tag Manager 首次配置**：启用插件后，编辑器左下角的 Tag Manager 面板会提示"尚未配置 Tag 存储文件"。点击"创建 Tag 配置文件"按钮，选择一个项目内的路径（如 `res://data/TagHierarchy.tres`），即可开始管理标签。该路径会自动写入项目设置，后续打开项目时将自动加载。
+
 ### 3. 创建容器
 
 ```gdscript
@@ -115,8 +117,8 @@ add_child(container)
 ### 4. 添加物品
 
 ```gdscript
-# 通过全局单例获取物品模板
-var item_data = ItemContainerSystem.get_item_data_by_id(0)
+# 通过全局单例获取物品模板（使用 StringName ID）
+var item_data = ItemContainerSystem.get_item_data_by_id(&"apple")
 
 # 方式一：通过模板添加（自动创建 Item 实例）
 container.add_item_by_itemdata(item_data, -1, true, 1)
@@ -126,11 +128,13 @@ var item := Item.new(item_data, container, -1, 3)
 container.add_item(item)
 ```
 
+> **关于物品 ID**：`ItemData.id` 类型为 `StringName`，建议使用有意义的标识符（如 `&"health_potion"`、`&"iron_sword"`）而非数字字符串。`StringName` 在 Godot 中具有 O(1) 的比较性能，不影响运行效率。
+
 ### 5. 删除物品
 
 ```gdscript
-container.remove_item_in_position(0, 1)   # 按位置删除指定数量
-container.remove_item_by_id(item_id, 2)   # 按物品 ID 删除指定数量
+container.remove_item_in_position(0, 1)        # 按位置删除指定数量
+container.remove_item_by_id(&"apple", 2)       # 按物品 ID 删除指定数量
 ```
 
 ### 6. 跨容器操作
@@ -138,7 +142,7 @@ container.remove_item_by_id(item_id, 2)   # 按物品 ID 删除指定数量
 ```gdscript
 # 移动物品到另一个容器
 Swapper.move_item(src_container, dst_container, item, count, dst_index)
-Swapper.move_by_id(bag, warehouse, item_id, 5)
+Swapper.move_by_id(bag, warehouse, &"apple", 5)
 
 # 交换两个位置
 Swapper.swap_positions(container_a, index_a, container_b, index_b)
@@ -151,7 +155,7 @@ Swapper.split_stack(container, index, split_count, dest_index)
 ### 7. 模拟预览（不执行）
 
 ```gdscript
-var preview := Swapper.simulate_move(bag, warehouse, item_id, 5)
+var preview := Swapper.simulate_move(bag, warehouse, &"apple", 5)
 if preview["code"] == Swapper.SUCCESS:
     print("源容器变化: ", preview["src_changes"])
     print("目标容器变化: ", preview["dst_changes"])
@@ -269,12 +273,14 @@ func use_item(item: Item, character_from, character_to, num: int):
 
 ### 标签访问控制
 
-创建 `Tag` 资源并利用层级结构进行分类，然后将标签分配给容器的 `addable_tags`：
+通过编辑器 Tag Manager 面板创建和管理层级标签，每个标签独立存储为 `.tres` 文件。然后将标签分配给容器的 `addable_tags`：
 
 ```gdscript
 container.addable_tags = [fruit_tag, weapon_tag]
 container.use_hierarchical_tags = true  # 启用层级匹配
 ```
+
+> 标签的父子关系仅通过 `child_tags` 单向存储，`parent_tag` 在加载时由 `TagHierarchy.initialize_paths()` 自动重建，避免序列化时的循环引用。
 
 ### 常见扩展方向
 
